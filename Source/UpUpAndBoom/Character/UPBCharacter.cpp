@@ -25,6 +25,8 @@ AUPBCharacter::AUPBCharacter()
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	
+	GetCharacterMovement()->JumpZVelocity = 700.f;
+	
 }
 
 // Called when the game starts or when spawned
@@ -69,14 +71,14 @@ void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	JumpAction,
 	ETriggerEvent::Triggered,
 	this,
-	&AUPBCharacter::Jump
+	&AUPBCharacter::HandleJump
 	);
 	
 	EnhancedInput->BindAction(
 	JumpAction,
 	ETriggerEvent::Canceled,
 	this,
-	&AUPBCharacter::Jump
+	&AUPBCharacter::StopJump
 	);
 }
 
@@ -97,7 +99,10 @@ void AUPBCharacter::Move(const FInputActionValue& Value)
 
 void AUPBCharacter::Look(const FInputActionValue& Value)
 {
-
+	const FVector2D LookAxis = Value.Get<FVector2D>();
+	
+	AddControllerPitchInput(-LookAxis.Y);
+	AddControllerYawInput(LookAxis.X);
 }
 
 void AUPBCharacter::HandleJump(const FInputActionValue& Value)
@@ -110,5 +115,4 @@ void AUPBCharacter::StopJump()
 	
 }
 
-// Called to bind functionality to input
 
