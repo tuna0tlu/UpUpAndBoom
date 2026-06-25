@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "UPBGameMode.generated.h"
 
+
 /**
  * 
  */
@@ -13,5 +14,7 @@ UCLASS()
 class UPUPANDBOOM_API AUPBGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	AUPBGameMode();
 };

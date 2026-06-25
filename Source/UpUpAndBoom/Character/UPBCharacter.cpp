@@ -6,6 +6,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputActionValue.h"
+
 // Sets default values
 AUPBCharacter::AUPBCharacter()
 {
@@ -25,9 +29,26 @@ AUPBCharacter::AUPBCharacter()
 
 // Called when the game starts or when spawned
 void AUPBCharacter::BeginPlay()
+
 {
 	Super::BeginPlay();
-	
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ULocalPlayer* LP = PC->GetLocalPlayer())
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+				LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
+}
+
+void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 // Called every frame
@@ -38,9 +59,4 @@ void AUPBCharacter::Tick(float DeltaTime)
 }
 
 // Called to bind functionality to input
-void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
 
