@@ -49,6 +49,35 @@ void AUPBCharacter::BeginPlay()
 void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	UEnhancedInputComponent* EnhancedInput = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	
+	EnhancedInput->BindAction(
+	MoveAction,
+	ETriggerEvent::Triggered,
+	this,
+	&AUPBCharacter::Move
+	);
+	
+	EnhancedInput->BindAction(
+		LookAction,
+		ETriggerEvent::Triggered,
+		this,
+		&AUPBCharacter::Look
+	);
+	
+	EnhancedInput->BindAction(
+	JumpAction,
+	ETriggerEvent::Triggered,
+	this,
+	&AUPBCharacter::Jump
+	);
+	
+	EnhancedInput->BindAction(
+	JumpAction,
+	ETriggerEvent::Canceled,
+	this,
+	&AUPBCharacter::Jump
+	);
 }
 
 // Called every frame
@@ -56,6 +85,29 @@ void AUPBCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AUPBCharacter::Move(const FInputActionValue& Value)
+{
+	const FVector2D MovementVector = Value.Get<FVector2D>();
+	
+	AddMovementInput(GetActorForwardVector(), MovementVector.Y);
+	AddMovementInput(GetActorRightVector(), MovementVector.X);
+}
+
+void AUPBCharacter::Look(const FInputActionValue& Value)
+{
+
+}
+
+void AUPBCharacter::HandleJump(const FInputActionValue& Value)
+{
+	Jump();
+}
+
+void AUPBCharacter::StopJump()
+{
+	
 }
 
 // Called to bind functionality to input
