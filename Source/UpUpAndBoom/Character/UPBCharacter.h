@@ -97,7 +97,8 @@ protected:
 	UFUNCTION()
 	void StopJump();
 	
-	
+	UFUNCTION(BlueprintCallable, Category = "Movement|Physics")
+	void ApplyExplosiveVelocity(FVector ImpulseForce);
 	
 	
 	void ApplyGravity();

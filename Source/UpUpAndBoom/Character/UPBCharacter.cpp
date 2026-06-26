@@ -7,6 +7,10 @@
 #include "InputActionValue.h"
 #include "Net/UnrealNetwork.h"
 
+
+
+// Constructor
+
 AUPBCharacter::AUPBCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -26,9 +30,14 @@ AUPBCharacter::AUPBCharacter()
     CurrentAirBoostMultiplier = DefaultAirBoostMultiplier;
     CurrentFallingLateralFriction = DefaultFallingLateralFriction;
     CurrentJumpZVelocity = DefaultJumpZVelocity;
-    
+ 
     ApplyMovementSettings();
 }
+
+
+
+
+// Engine Lifecycle
 
 void AUPBCharacter::BeginPlay()
 {
@@ -47,6 +56,8 @@ void AUPBCharacter::PawnClientRestart()
     InitializeOverlayInput();
 }
 
+
+// Input
 
 void AUPBCharacter::Move(const FInputActionValue& Value)
 {
@@ -74,17 +85,21 @@ void AUPBCharacter::StopJump()
     StopJumping(); 
 }
 
-void AUPBCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
     
-    DOREPLIFETIME(AUPBCharacter, CurrentGravityScale);
-    DOREPLIFETIME(AUPBCharacter, CurrentAirControl);
-    DOREPLIFETIME(AUPBCharacter, CurrentAirBoostMultiplier);
-    DOREPLIFETIME(AUPBCharacter, CurrentFallingLateralFriction);
-    DOREPLIFETIME(AUPBCharacter, CurrentJumpZVelocity);
-}
+    if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+    {
 
+        EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPBCharacter::Move);
+        
+        EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPBCharacter::Look);
+        
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AUPBCharacter::HandleJump);
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUPBCharacter::StopJump);
+    }
+}
 
 void AUPBCharacter::InitializeOverlayInput()
 {
@@ -103,20 +118,20 @@ void AUPBCharacter::InitializeOverlayInput()
     }
 }
 
-void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-    Super::SetupPlayerInputComponent(PlayerInputComponent);
-    
-    if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-    {
 
-        EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPBCharacter::Move);
-        
-        EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPBCharacter::Look);
-        
-        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AUPBCharacter::HandleJump);
-        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUPBCharacter::StopJump);
-    }
+
+
+// Replication
+
+void AUPBCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
+    DOREPLIFETIME(AUPBCharacter, CurrentGravityScale);
+    DOREPLIFETIME(AUPBCharacter, CurrentAirControl);
+    DOREPLIFETIME(AUPBCharacter, CurrentAirBoostMultiplier);
+    DOREPLIFETIME(AUPBCharacter, CurrentFallingLateralFriction);
+    DOREPLIFETIME(AUPBCharacter, CurrentJumpZVelocity);
 }
 
 void AUPBCharacter::OnRep_CurrentGravityScale()
@@ -143,6 +158,20 @@ void AUPBCharacter::OnRep_CurrentAirControl()
 {
     ApplyAirControl();
 }
+
+
+
+
+//Movement Functions
+void AUPBCharacter::ApplyExplosiveVelocity(FVector ImpulseForce)
+{
+    if (HasAuthority() || IsLocallyControlled())
+    {
+        LaunchCharacter(ImpulseForce, false, false);
+    }
+}
+
+// Movement Settings - Apply
 
 void AUPBCharacter::ApplyGravity()
 {
@@ -176,7 +205,13 @@ void AUPBCharacter::ApplyMovementSettings()
     ApplyAirBoostMultiplier();
     ApplyFallingLateralFriction();
     ApplyJumpZVelocity();
+    
+    GetCharacterMovement()->BrakingDecelerationFalling = 0.0f;
 }
+
+
+
+// Movement Settings - Setters
 
 void AUPBCharacter::SetGravityScale(float NewGravityScale)
 {
