@@ -33,8 +33,6 @@ AUPBCharacter::AUPBCharacter()
 void AUPBCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    
-    InitializeOverlayInput();
 }
 
 
@@ -42,6 +40,13 @@ void AUPBCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
+
+void AUPBCharacter::PawnClientRestart()
+{
+    Super::PawnClientRestart();
+    InitializeOverlayInput();
+}
+
 
 void AUPBCharacter::Move(const FInputActionValue& Value)
 {
@@ -175,30 +180,46 @@ void AUPBCharacter::ApplyMovementSettings()
 
 void AUPBCharacter::SetGravityScale(float NewGravityScale)
 {
-    CurrentGravityScale = NewGravityScale;
-    ApplyGravity();
+    if (HasAuthority())
+    {
+        CurrentGravityScale = NewGravityScale;
+        ApplyGravity();
+    }
 }
 
 void AUPBCharacter::SetAirControl(float NewAirControl)
 {
-    CurrentAirControl = NewAirControl;
-    ApplyAirControl();
+    if (HasAuthority())
+    {
+        CurrentAirControl = NewAirControl;
+        ApplyAirControl();
+    }
 }
 
 void AUPBCharacter::SetAirBoostMultiplier(float NewMultiplier)
 {
-    CurrentAirBoostMultiplier = NewMultiplier;
-    ApplyAirBoostMultiplier();
+    if (HasAuthority())
+    {
+        CurrentAirBoostMultiplier = NewMultiplier;
+        ApplyAirBoostMultiplier();  
+    }
+
 }
 
 void AUPBCharacter::SetFallingLateralFriction(float NewFriction)
 {
-    CurrentFallingLateralFriction = NewFriction;
-    ApplyFallingLateralFriction();
+    if (HasAuthority())
+    {
+        CurrentFallingLateralFriction = NewFriction;
+        ApplyFallingLateralFriction();
+    }
 }
 
 void AUPBCharacter::SetJumpZVelocity(float NewJumpVelocity)
 {
-    CurrentJumpZVelocity = NewJumpVelocity;
-    ApplyJumpZVelocity();
+    if (HasAuthority())
+    {
+        CurrentJumpZVelocity = NewJumpVelocity;
+        ApplyJumpZVelocity();
+    }
 }
