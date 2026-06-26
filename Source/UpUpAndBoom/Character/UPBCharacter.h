@@ -25,6 +25,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//Multiplayer
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
@@ -33,19 +36,19 @@ private:
 protected:
 	
 	//Physics
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomGravityScale, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
 	float customGravityScale = .85f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomAirControl, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true")) //Sonra gerekirse rep fonksiyonu bakarız
 	float customAirControl = .6f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomAirBoostMultiplier, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
 	float customAirBoostMultiplier = 2.5f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomFallingLateralFriction, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
 	float customFallingLateralFriction = .5f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomJumpZVelocity, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
 	float customJumpZVelocity = 450.f;
 	
 	//Input
@@ -75,6 +78,33 @@ protected:
 	UFUNCTION()
 	void StopJump();
 	
+	
+	
+	
+	//Movement Value Apply Funcs
+	void ApplyGravity();
+	void ApplyAirBoostMultiplier();
+	void ApplyAirControl();
+	void ApplyFallingLateralFriction();
+	void ApplyJumpZVelocity();
+	
+	
 	//Input Functions
 	void InitializeOverlayInput();
+	
+	//Replication
+	UFUNCTION()
+	void OnRep_CustomGravityScale();
+	
+	UFUNCTION()
+	void OnRep_CustomAirBoostMultiplier();
+	
+	UFUNCTION()
+	void OnRep_CustomFallingLateralFriction();
+	
+	UFUNCTION()
+	void OnRep_CustomJumpZVelocity();
+	
+	UFUNCTION()
+	void OnRep_CustomAirControl();
 };

@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Net/UnrealNetwork.h"
 
 AUPBCharacter::AUPBCharacter()
 {
@@ -18,14 +19,16 @@ AUPBCharacter::AUPBCharacter()
     Camera->SetRelativeLocation(FVector(0.f, 0.f, 64.f));
     Camera->bUsePawnControlRotation = true;
     
+    bReplicates = true;
+    
     bUseControllerRotationYaw = true;
     GetCharacterMovement()->bOrientRotationToMovement = false;
-    GetCharacterMovement()->JumpZVelocity = customJumpZVelocity;
     
-    GetCharacterMovement()->GravityScale = customGravityScale;
-    GetCharacterMovement()->AirControl = customAirControl;
-    GetCharacterMovement()->AirControlBoostMultiplier = customAirBoostMultiplier;
-    GetCharacterMovement()->FallingLateralFriction = customFallingLateralFriction;
+    ApplyGravity();
+    ApplyAirControl();
+    ApplyAirBoostMultiplier();
+    ApplyFallingLateralFriction();
+    ApplyJumpZVelocity();
     
 }
 
@@ -68,6 +71,16 @@ void AUPBCharacter::StopJump()
     StopJumping(); 
 }
 
+void AUPBCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
+    DOREPLIFETIME(AUPBCharacter, customGravityScale);
+    DOREPLIFETIME(AUPBCharacter, customAirControl);
+    DOREPLIFETIME(AUPBCharacter, customAirBoostMultiplier);
+    DOREPLIFETIME(AUPBCharacter, customFallingLateralFriction);
+    DOREPLIFETIME(AUPBCharacter, customJumpZVelocity);
+}
 
 
 //Input
@@ -102,4 +115,56 @@ void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AUPBCharacter::HandleJump);
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUPBCharacter::StopJump);
     }
+}
+
+//Replication
+void AUPBCharacter::OnRep_CustomGravityScale()
+{
+    ApplyGravity();
+}
+    
+void AUPBCharacter::OnRep_CustomAirBoostMultiplier()
+{
+    ApplyAirBoostMultiplier();
+}
+    
+void AUPBCharacter::OnRep_CustomFallingLateralFriction()
+{
+    ApplyFallingLateralFriction();
+}
+    
+void AUPBCharacter::OnRep_CustomJumpZVelocity()
+{
+    ApplyJumpZVelocity();
+}
+
+void AUPBCharacter::OnRep_CustomAirControl()
+{
+    ApplyAirControl();
+}
+
+//Movement Setting
+void AUPBCharacter::ApplyGravity()
+{
+    GetCharacterMovement()->GravityScale = customGravityScale;
+}
+    
+void AUPBCharacter::ApplyAirControl()
+{
+    GetCharacterMovement()->AirControl = customAirControl;
+}
+    
+void AUPBCharacter::ApplyAirBoostMultiplier()
+{
+    GetCharacterMovement()->AirControlBoostMultiplier = customAirBoostMultiplier;
+}
+    
+void AUPBCharacter::ApplyFallingLateralFriction()
+{
+    GetCharacterMovement()-> FallingLateralFriction = customFallingLateralFriction;
+}
+    
+void AUPBCharacter::ApplyJumpZVelocity()
+{
+    GetCharacterMovement()-> JumpZVelocity = customJumpZVelocity;
 }
