@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "EnhancedInputComponent.h"
 #include "UPBCharacter.generated.h"
 
 class UCameraComponent;
@@ -42,6 +43,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* JumpAction;
 
+	
+	//Action Functions
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
 
@@ -53,4 +56,7 @@ protected:
 	
 	UFUNCTION()
 	void StopJump();
+	
+	//Input Functions
+	void InitializeOverlayInput();
 };

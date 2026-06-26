@@ -3,3 +3,24 @@
 
 #include "UPBPlayerController.h"
 
+void AUPBPlayerController::SetupInputComponent()
+{
+	
+	Super::SetupInputComponent();
+	
+	
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			if (BaseMappingContext)
+			{
+				Subsystem->AddMappingContext(
+				BaseMappingContext,
+				0
+				);
+			}
+		}
+	}
+	
+}
