@@ -18,6 +18,12 @@ class UPUPANDBOOM_API AUPBCharacter : public ACharacter
 public:
 	AUPBCharacter();
 
+	void SetGravityScale(float NewGravityScale);
+	void SetAirControl(float NewAirControl);
+	void SetAirBoostMultiplier(float NewMultiplier);
+	void SetFallingLateralFriction(float NewFriction);
+	void SetJumpZVelocity(float NewJumpVelocity);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -25,7 +31,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//Multiplayer
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
@@ -35,23 +40,36 @@ private:
 
 protected:
 	
-	//Physics
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomGravityScale, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
-	float customGravityScale = .85f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float DefaultGravityScale = .85f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomAirControl, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true")) //Sonra gerekirse rep fonksiyonu bakarız
-	float customAirControl = .6f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float DefaultAirControl = .6f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomAirBoostMultiplier, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
-	float customAirBoostMultiplier = 2.5f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float DefaultAirBoostMultiplier = 2.5f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomFallingLateralFriction, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
-	float customFallingLateralFriction = .5f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float DefaultFallingLateralFriction = .5f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_CustomJumpZVelocity, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
-	float customJumpZVelocity = 450.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float DefaultJumpZVelocity = 450.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentGravityScale)
+	float CurrentGravityScale;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentAirControl)
+	float CurrentAirControl;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentAirBoostMultiplier)
+	float CurrentAirBoostMultiplier;
 	
-	//Input
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentFallingLateralFriction)
+	float CurrentFallingLateralFriction;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentJumpZVelocity)
+	float CurrentJumpZVelocity;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* DefaultMappingContext;
 
@@ -65,7 +83,6 @@ protected:
 	UInputAction* JumpAction;
 
 	
-	//Action Functions
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
 
@@ -81,30 +98,28 @@ protected:
 	
 	
 	
-	//Movement Value Apply Funcs
 	void ApplyGravity();
 	void ApplyAirBoostMultiplier();
 	void ApplyAirControl();
 	void ApplyFallingLateralFriction();
 	void ApplyJumpZVelocity();
+	void ApplyMovementSettings();
 	
 	
-	//Input Functions
 	void InitializeOverlayInput();
 	
-	//Replication
 	UFUNCTION()
-	void OnRep_CustomGravityScale();
+	void OnRep_CurrentGravityScale();
 	
 	UFUNCTION()
-	void OnRep_CustomAirBoostMultiplier();
+	void OnRep_CurrentAirBoostMultiplier();
 	
 	UFUNCTION()
-	void OnRep_CustomFallingLateralFriction();
+	void OnRep_CurrentFallingLateralFriction();
 	
 	UFUNCTION()
-	void OnRep_CustomJumpZVelocity();
+	void OnRep_CurrentJumpZVelocity();
 	
 	UFUNCTION()
-	void OnRep_CustomAirControl();
+	void OnRep_CurrentAirControl();
 };
