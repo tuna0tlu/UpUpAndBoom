@@ -20,7 +20,13 @@ AUPBCharacter::AUPBCharacter()
     
     bUseControllerRotationYaw = true;
     GetCharacterMovement()->bOrientRotationToMovement = false;
-    GetCharacterMovement()->JumpZVelocity = 700.f;
+    GetCharacterMovement()->JumpZVelocity = customJumpZVelocity;
+    
+    GetCharacterMovement()->GravityScale = customGravityScale;
+    GetCharacterMovement()->AirControl = customAirControl;
+    GetCharacterMovement()->AirControlBoostMultiplier = customAirBoostMultiplier;
+    GetCharacterMovement()->FallingLateralFriction = customFallingLateralFriction;
+    
 }
 
 void AUPBCharacter::BeginPlay()

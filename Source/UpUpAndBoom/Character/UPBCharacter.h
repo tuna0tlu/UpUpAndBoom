@@ -31,6 +31,24 @@ private:
 
 
 protected:
+	
+	//Physics
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float customGravityScale = .85f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float customAirControl = .6f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float customAirBoostMultiplier = 2.5f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float customFallingLateralFriction = .5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Physics", meta = (AllowPrivateAccess = "true"))
+	float customJumpZVelocity = 450.f;
+	
+	//Input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* DefaultMappingContext;
 
