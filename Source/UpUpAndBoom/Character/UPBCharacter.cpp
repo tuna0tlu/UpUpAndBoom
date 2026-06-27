@@ -101,7 +101,15 @@ void AUPBCharacter::StopJump()
 
 void AUPBCharacter::HandleFire(const FInputActionValue& Value)
 {
-    
+    Server_HandleFire();
+}
+
+void AUPBCharacter::Server_HandleFire_Implementation()
+{
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->ExecuteAbility();
+    }
 }
 
 void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -137,7 +145,7 @@ void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
         
         EnhancedInputComponent->BindAction(
             FireAction,
-            ETriggerEvent::Triggered,
+            ETriggerEvent::Started,
             this,
             &AUPBCharacter::HandleFire
             );
@@ -175,6 +183,7 @@ void AUPBCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& 
     DOREPLIFETIME(AUPBCharacter, CurrentAirBoostMultiplier);
     DOREPLIFETIME(AUPBCharacter, CurrentFallingLateralFriction);
     DOREPLIFETIME(AUPBCharacter, CurrentJumpZVelocity);
+    DOREPLIFETIME(AUPBCharacter, CurrentWeapon);
 }
 
 void AUPBCharacter::OnRep_CurrentGravityScale()
@@ -249,7 +258,7 @@ void AUPBCharacter::ApplyMovementSettings()
     ApplyFallingLateralFriction();
     ApplyJumpZVelocity();
     
-    GetCharacterMovement()->BrakingDecelerationFalling = 0.0f;
+    GetCharacterMovement()->BrakingDecelerationFalling = 0.f;
 }
 
 

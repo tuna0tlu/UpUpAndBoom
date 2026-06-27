@@ -22,5 +22,5 @@ public:
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
-	float PushForce = 2500.f;
+	float PushForce = 1.f;
 };

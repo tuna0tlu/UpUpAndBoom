@@ -11,6 +11,7 @@ AUPBWeapon_Base::AUPBWeapon_Base()
 	
 	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned

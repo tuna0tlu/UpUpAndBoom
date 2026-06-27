@@ -36,7 +36,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	TSubclassOf<class AUPBWeapon_Base> DefaultWeaponClass;
 	
-	UPROPERTY(Transient)
+	UPROPERTY(Replicated, Transient)
 	AUPBWeapon_Base* CurrentWeapon;
 
 public: 
@@ -112,6 +112,9 @@ protected:
 	
 	UFUNCTION()
 	void HandleFire(const FInputActionValue& Value);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_HandleFire();
 
 	
 	
