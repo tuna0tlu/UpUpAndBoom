@@ -42,6 +42,20 @@ AUPBCharacter::AUPBCharacter()
 void AUPBCharacter::BeginPlay()
 {
     Super::BeginPlay();
+    
+    if (HasAuthority() && DefaultWeaponClass)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        SpawnParams.Instigator = GetInstigator();
+        
+        CurrentWeapon = GetWorld()->SpawnActor<AUPBWeapon_Base>(DefaultWeaponClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+        
+        if (CurrentWeapon)
+        {
+            CurrentWeapon->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+        }
+    }
 }
 
 
@@ -85,6 +99,11 @@ void AUPBCharacter::StopJump()
     StopJumping(); 
 }
 
+void AUPBCharacter::HandleFire(const FInputActionValue& Value)
+{
+    
+}
+
 void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -92,12 +111,36 @@ void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
 
-        EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPBCharacter::Move);
+        EnhancedInputComponent->BindAction(
+            MoveAction,
+            ETriggerEvent::Triggered,
+            this, 
+            &AUPBCharacter::Move);
         
-        EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPBCharacter::Look);
+        EnhancedInputComponent->BindAction(
+            LookAction, 
+            ETriggerEvent::Triggered, 
+            this, 
+            &AUPBCharacter::Look);
         
-        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AUPBCharacter::HandleJump);
-        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUPBCharacter::StopJump);
+        EnhancedInputComponent->BindAction(
+            JumpAction, 
+            ETriggerEvent::Started, 
+            this,
+            &AUPBCharacter::HandleJump);
+        
+        EnhancedInputComponent->BindAction(
+            JumpAction, 
+            ETriggerEvent::Completed, 
+            this, 
+            &AUPBCharacter::StopJump);
+        
+        EnhancedInputComponent->BindAction(
+            FireAction,
+            ETriggerEvent::Triggered,
+            this,
+            &AUPBCharacter::HandleFire
+            );
     }
 }
 

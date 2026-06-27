@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "EnhancedInputComponent.h"
+#include "../Equipment/Weapons/UPBWeapon_Base.h"
 #include "UPBCharacter.generated.h"
 
 class UCameraComponent;
@@ -23,11 +24,20 @@ public:
 	void SetAirBoostMultiplier(float NewMultiplier);
 	void SetFallingLateralFriction(float NewFriction);
 	void SetJumpZVelocity(float NewJumpVelocity);
+	
+	UFUNCTION(BlueprintCallable, Category = "Movement|Physics")
+	void ApplyExplosiveVelocity(FVector ImpulseForce);
 
 protected:
 	virtual void BeginPlay() override;
 	
 	virtual void PawnClientRestart() override;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	TSubclassOf<class AUPBWeapon_Base> DefaultWeaponClass;
+	
+	UPROPERTY(Transient)
+	AUPBWeapon_Base* CurrentWeapon;
 
 public: 
 	virtual void Tick(float DeltaTime) override;
@@ -83,6 +93,9 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* JumpAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* FireAction;
 
 	
 	UFUNCTION()
@@ -97,8 +110,9 @@ protected:
 	UFUNCTION()
 	void StopJump();
 	
-	UFUNCTION(BlueprintCallable, Category = "Movement|Physics")
-	void ApplyExplosiveVelocity(FVector ImpulseForce);
+	UFUNCTION()
+	void HandleFire(const FInputActionValue& Value);
+
 	
 	
 	void ApplyGravity();
