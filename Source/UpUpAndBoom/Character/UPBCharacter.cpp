@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Net/UnrealNetwork.h"
+#include "../Equipment/Weapons/GrappleGun/UPBWeapon_Grapple.h"
 
 
 
@@ -14,27 +15,25 @@
 AUPBCharacter::AUPBCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
-    
+
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     Camera->SetupAttachment(GetCapsuleComponent());
     Camera->SetRelativeLocation(FVector(0.f, 0.f, 64.f));
     Camera->bUsePawnControlRotation = true;
-    
+
     bReplicates = true;
-    
+
     bUseControllerRotationYaw = true;
     GetCharacterMovement()->bOrientRotationToMovement = false;
-    
+
     CurrentGravityScale = DefaultGravityScale;
     CurrentAirControl = DefaultAirControl;
     CurrentAirBoostMultiplier = DefaultAirBoostMultiplier;
     CurrentFallingLateralFriction = DefaultFallingLateralFriction;
     CurrentJumpZVelocity = DefaultJumpZVelocity;
- 
+
     ApplyMovementSettings();
 }
-
-
 
 
 // Engine Lifecycle
@@ -42,20 +41,26 @@ AUPBCharacter::AUPBCharacter()
 void AUPBCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    
-    if (HasAuthority() && DefaultWeaponClass)
-    {
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this;
-        SpawnParams.Instigator = GetInstigator();
-        
-        CurrentWeapon = GetWorld()->SpawnActor<AUPBWeapon_Base>(DefaultWeaponClass, GetActorLocation(), GetActorRotation(), SpawnParams);
-        
-        if (CurrentWeapon)
-        {
-            CurrentWeapon->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-        }
-    }
+
+   if (HasAuthority())
+   {
+       FActorSpawnParameters SpawnParams;
+       SpawnParams.Owner = this;
+       SpawnParams.Instigator = GetInstigator();
+
+       if (RecoilGunClass)
+       {
+           RecoilGun = GetWorld()->SpawnActor<AUPBWeapon_Base>(RecoilGunClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+       }
+
+       if (GrappleGunClass)
+       {
+           GrappleGun = GetWorld()->SpawnActor<AUPBWeapon_Base>(GrappleGunClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+       }
+
+       // Başlangıçta Recoil aktif
+       ActiveWeapon = RecoilGun;
+   }
 }
 
 
@@ -76,7 +81,7 @@ void AUPBCharacter::PawnClientRestart()
 void AUPBCharacter::Move(const FInputActionValue& Value)
 {
     const FVector2D MovementVector = Value.Get<FVector2D>();
-    
+
     AddMovementInput(GetActorForwardVector(), MovementVector.Y);
     AddMovementInput(GetActorRightVector(), MovementVector.X);
 }
@@ -84,19 +89,39 @@ void AUPBCharacter::Move(const FInputActionValue& Value)
 void AUPBCharacter::Look(const FInputActionValue& Value)
 {
     const FVector2D LookAxis = Value.Get<FVector2D>();
-    
+
     AddControllerPitchInput(-LookAxis.Y);
     AddControllerYawInput(LookAxis.X);
 }
 
 void AUPBCharacter::HandleJump(const FInputActionValue& Value)
 {
-    Jump(); 
+    Jump();
 }
 
 void AUPBCharacter::StopJump()
 {
-    StopJumping(); 
+    StopJumping();
+}
+
+void AUPBCharacter::HandleSelectRecoil(const FInputActionValue& Value)
+{
+    Server_SelectRecoil();
+}
+
+void AUPBCharacter::Server_SelectRecoil_Implementation()
+{
+    ActiveWeapon = RecoilGun;
+}
+
+void AUPBCharacter::HandleSelectGrapple(const FInputActionValue& Value)
+{
+    Server_SelectGrapple();
+}
+
+void AUPBCharacter::Server_SelectGrapple_Implementation()
+{
+    ActiveWeapon = GrappleGun;
 }
 
 void AUPBCharacter::HandleFire(const FInputActionValue& Value)
@@ -106,49 +131,78 @@ void AUPBCharacter::HandleFire(const FInputActionValue& Value)
 
 void AUPBCharacter::Server_HandleFire_Implementation()
 {
-    if (CurrentWeapon)
+    if (ActiveWeapon)
     {
-        CurrentWeapon->ExecuteAbility();
+        ActiveWeapon->ExecuteAbility();
+    }
+}
+
+void AUPBCharacter::HandleStopFire()
+{
+    Server_HandleStopFire();
+}
+
+void AUPBCharacter::Server_HandleStopFire_Implementation()
+{
+    if (AUPBWeapon_Grapple* Grapple = Cast<AUPBWeapon_Grapple>(ActiveWeapon))
+    {
+        Grapple->StopGrapple();
     }
 }
 
 void AUPBCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
-    
+
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
-
         EnhancedInputComponent->BindAction(
             MoveAction,
             ETriggerEvent::Triggered,
-            this, 
+            this,
             &AUPBCharacter::Move);
-        
+
         EnhancedInputComponent->BindAction(
-            LookAction, 
-            ETriggerEvent::Triggered, 
-            this, 
+            LookAction,
+            ETriggerEvent::Triggered,
+            this,
             &AUPBCharacter::Look);
-        
+
         EnhancedInputComponent->BindAction(
-            JumpAction, 
-            ETriggerEvent::Started, 
+            JumpAction,
+            ETriggerEvent::Started,
             this,
             &AUPBCharacter::HandleJump);
-        
+
         EnhancedInputComponent->BindAction(
-            JumpAction, 
-            ETriggerEvent::Completed, 
-            this, 
+            JumpAction,
+            ETriggerEvent::Completed,
+            this,
             &AUPBCharacter::StopJump);
-        
+
+        EnhancedInputComponent->BindAction(
+            SelectRecoilAction,
+            ETriggerEvent::Started,
+            this,
+            &AUPBCharacter::HandleSelectRecoil);
+
+        EnhancedInputComponent->BindAction(
+            SelectGrappleAction,
+            ETriggerEvent::Started,
+            this,
+            &AUPBCharacter::HandleSelectGrapple);
+
         EnhancedInputComponent->BindAction(
             FireAction,
             ETriggerEvent::Started,
             this,
-            &AUPBCharacter::HandleFire
-            );
+            &AUPBCharacter::HandleFire);
+
+        EnhancedInputComponent->BindAction(
+            FireAction,
+            ETriggerEvent::Completed,
+            this,
+            &AUPBCharacter::HandleStopFire);
     }
 }
 
@@ -177,30 +231,32 @@ void AUPBCharacter::InitializeOverlayInput()
 void AUPBCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    
+
     DOREPLIFETIME(AUPBCharacter, CurrentGravityScale);
     DOREPLIFETIME(AUPBCharacter, CurrentAirControl);
     DOREPLIFETIME(AUPBCharacter, CurrentAirBoostMultiplier);
     DOREPLIFETIME(AUPBCharacter, CurrentFallingLateralFriction);
     DOREPLIFETIME(AUPBCharacter, CurrentJumpZVelocity);
-    DOREPLIFETIME(AUPBCharacter, CurrentWeapon);
+    DOREPLIFETIME(AUPBCharacter, RecoilGun);
+    DOREPLIFETIME(AUPBCharacter, GrappleGun);
+    DOREPLIFETIME(AUPBCharacter, ActiveWeapon);
 }
 
 void AUPBCharacter::OnRep_CurrentGravityScale()
 {
     ApplyGravity();
 }
-    
+
 void AUPBCharacter::OnRep_CurrentAirBoostMultiplier()
 {
     ApplyAirBoostMultiplier();
 }
-    
+
 void AUPBCharacter::OnRep_CurrentFallingLateralFriction()
 {
     ApplyFallingLateralFriction();
 }
-    
+
 void AUPBCharacter::OnRep_CurrentJumpZVelocity()
 {
     ApplyJumpZVelocity();
@@ -215,12 +271,17 @@ void AUPBCharacter::OnRep_CurrentAirControl()
 
 
 //Movement Functions
-void AUPBCharacter::ApplyExplosiveVelocity(FVector ImpulseForce)
+void AUPBCharacter::ApplyExplosiveVelocity(FVector ImpulseForce, bool bOverrideXY, bool bOverrideZ)
 {
     if (HasAuthority() || IsLocallyControlled())
     {
-        LaunchCharacter(ImpulseForce, false, false);
+        LaunchCharacter(ImpulseForce, bOverrideXY, bOverrideZ);
     }
+}
+
+FVector AUPBCharacter::GetCameraWorldLocation() const
+{
+    return Camera->GetComponentLocation();
 }
 
 // Movement Settings - Apply
@@ -229,22 +290,22 @@ void AUPBCharacter::ApplyGravity()
 {
     GetCharacterMovement()->GravityScale = CurrentGravityScale;
 }
-    
+
 void AUPBCharacter::ApplyAirControl()
 {
     GetCharacterMovement()->AirControl = CurrentAirControl;
 }
-    
+
 void AUPBCharacter::ApplyAirBoostMultiplier()
 {
     GetCharacterMovement()->AirControlBoostMultiplier = CurrentAirBoostMultiplier;
 }
-    
+
 void AUPBCharacter::ApplyFallingLateralFriction()
 {
     GetCharacterMovement()->FallingLateralFriction = CurrentFallingLateralFriction;
 }
-    
+
 void AUPBCharacter::ApplyJumpZVelocity()
 {
     GetCharacterMovement()->JumpZVelocity = CurrentJumpZVelocity;
@@ -257,7 +318,7 @@ void AUPBCharacter::ApplyMovementSettings()
     ApplyAirBoostMultiplier();
     ApplyFallingLateralFriction();
     ApplyJumpZVelocity();
-    
+
     GetCharacterMovement()->BrakingDecelerationFalling = 0.f;
 }
 
@@ -288,7 +349,7 @@ void AUPBCharacter::SetAirBoostMultiplier(float NewMultiplier)
     if (HasAuthority())
     {
         CurrentAirBoostMultiplier = NewMultiplier;
-        ApplyAirBoostMultiplier();  
+        ApplyAirBoostMultiplier();
     }
 
 }

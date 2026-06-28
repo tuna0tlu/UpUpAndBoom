@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../UPBWeapon_Base.h"
+#include "../../../Character/UPBCharacter.h"
 #include "UPBWeapon_Recoil.generated.h"
 
 /**
@@ -22,5 +23,25 @@ public:
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
-	float PushForce = 1.f;
+	float PushForce = 800.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
+	float EnemyPushForce = 2000.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
+	float EnemyUpwardBoost = 300.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
+	float TraceDistance = 250.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
+	float WallUpwardBias = 0.4f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Settings")
+	float DirectionBlend = .5f;
+	
+	
+private:
+	FVector CalculatePushDirection(const AUPBCharacter* OwnerCharacter) const;
+	
 };
